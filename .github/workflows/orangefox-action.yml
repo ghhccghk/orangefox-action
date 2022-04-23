@@ -14,13 +14,11 @@ jobs:
       uses: actions/checkout@main
       
       
-    - name: wget gsi
-      run: |
-         sudo apt -y autoremove --purge
-         sudo apt -y install wget 
-         cd ~
-         wget ‘https://down.warbler.cc/d/LZYs/GSI/Flyme/AB/Flyme9-16T-AB-10-2021.06.05-LZYGSI.7z’
-    
+   - name: wget
+      uses: wei/wget@v1
+      with:
+        args: https://down.warbler.cc/d/LZYs/GSI/Flyme/AB/Flyme9-16T-AB-10-2021.06.05-LZYGSI.7z 
+        
     
     - name: Upload REC
       uses: softprops/action-gh-release@v1
