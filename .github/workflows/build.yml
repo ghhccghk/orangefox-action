@@ -1,94 +1,32 @@
-name: Build OrangeFox 
+name: rec-building
 
 on:
-  workflow_dispatch:
-    inputs:
-      DEVICE_URL:
-        description: 'DEVICE_URL'
-        required: true
-        default: 'https://github.com/sekaiacg/android_device_xiaomi_umi_TWRP.git'
-      DEVICE_BRANCH:
-        description: 'DEVICE_BRANCH'
-        required: true
-        default: 'android-12'
-      DEVICE_PATH:
-        description: 'DEVICE_PATH'
-        required: true
-        default: 'umi'
-      DEVICE_NAME:
-        description: 'DEVICE_NAME'
-        required: true
-        default: 'umi'
-      LIBRARY_BRANCH:
-        description: 'LIBRARY_BRANCH'
-        required: true
-        default: 'twrp'
-
+  watch:
+    types: [started]
+    
 jobs:
   build:
     if: github.event.repository.owner.id == github.event.sender.id
     runs-on: ubuntu-18.04
-
+    
     steps:
-    - name: Remove useless package
-      run: |
-        docker rmi `docker images -q`
-        sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
-        sudo apt -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php*
-        sudo apt -y autoremove --purge
-        sudo apt -y autoclean
-        sudo apt clean
-        
-    - name: Maximize and mount build space
-      uses: easimon/maximize-build-space@master
-      with:
-        root-reserve-mb: 1024
-        swap-size-mb: 6144
-        remove-dotnet: 'true'
-        temp-reserve-mb: 1024
-        remove-android: 'true'
-        remove-haskell: 'true'
-
-    - name: Check Out
+    - name: Checkout
       uses: actions/checkout@main
-
-    - name: Prepare environment
+      
+      
+    - name: wget gsi
       run: |
-        export HOME=${GITHUB_WORKSPACE}
-        cd ${GITHUB_WORKSPACE}
-        sudo apt -y install git aria2 
-        git clone https://gitlab.com/OrangeFox/misc/scripts
-        cd scripts
-        sudo bash setup/android_build_env.sh
-        sudo bash setup/install_android_sdk.sh || true
-
-    - name: Sync repo
-      run: |
-        mkdir ${GITHUB_WORKSPACE}/OrangeFox_sync
-        cd ${GITHUB_WORKSPACE}/OrangeFox_sync
-        git clone https://gitlab.com/OrangeFox/sync.git
-        cd ${GITHUB_WORKSPACE}/OrangeFox_sync/sync/
-        ./orangefox_sync.sh --branch 11.0 --path ${GITHUB_WORKSPACE}/fox_11.0
-        
-    - name: Clone device
-      run: |
-        cd ${GITHUB_WORKSPACE}/fox_11.0
-        git clone ${{ github.event.inputs.DEVICE_URL }} -b ${{ github.event.inputs.DEVICE_BRANCH }} device/xiaomi/${{ github.event.inputs.DEVICE_PATH }}
-        
-    - name: Building
-      run: |
-        export DEVICE_NAME=${{ github.event.inputs.DEVICE_NAME }}
-        export DEVICE_BRANCH=${{ github.event.inputs.DEVICE_BRANCH }}
-        cd ${GITHUB_WORKSPACE}/fox_11.0
-        source ${GITHUB_WORKSPACE}/config/base.sh
-        source build/envsetup.sh || true
-        lunch ${{ github.event.inputs.LIBRARY_BRANCH }}_${{ github.event.inputs.DEVICE_NAME }}-eng
-        make clean
-        mka recoveryimage
-        
-    - name: Upload articact
-      uses: actions/upload-artifact@v2
+         cd ~
+         wget ”https://down.warbler.cc/d/LZYs/GSI/Flyme/AB/Flyme9-16T-AB-10-2021.06.05-LZYGSI.7z“
+    
+    
+    - name: Upload REC
+      uses: softprops/action-gh-release@v1
       with:
-        path: |
-          fox_11.0/out/target/product/${{ github.event.inputs.DEVICE_PATH }}/OrangeFox*.zip
-        name: ${{ github.event.inputs.DEVICE_NAME }}
+        files: /home/runner/Flyme9-16T-AB-10-2021.06.05-LZYGSI.7z
+        name: gsi
+        tag_name: ${{ github.run_id }}
+        body: Android Third-Party Recovery built by ${{ steps.var.outputs.git_username }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.helpmi }}
+  
